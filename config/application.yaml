@@ -1,0 +1,28 @@
+logging:                                                                                                                 
+  config: classpath:logback-spring.xml                                                                                   
+  level:                                                                                                                 
+    sample.camel: DEBUG
+#    org.apache.camel: TRACE
+#    org.springframework.ws: TRACE                                                                                   
+  file: application.log                                                                                    
+
+spring:
+  activemq:
+    broker-url: tcp://localhost:61616
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer-requestTimeoutMs: 10000
+     
+camel:
+  springboot:
+    main-run-controller: true
+SonicMQ:
+  domain: Domain    
+  brokerUrl: tcp://host1:2506,tcp://host2:2506
+  connectionFactory: ConnectionFactory
+  destination: SampleT1
+  jmsUser: user
+  jmsPassword: pass
+  clientId: Camel-Sonic-Kafka-Bridge
+  subscription: CamelSonicKafkaBridgeSubscriber    
+    
