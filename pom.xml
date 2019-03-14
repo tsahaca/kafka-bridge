@@ -23,7 +23,7 @@
 	</parent>
 
 	<artifactId>sonic-kafka-bridge</artifactId>
-	<groupId>sample.camel</groupId>
+	<groupId>com.test</groupId>
 	<name>Camel :: Example :: Spring Boot :: SonicMQ to Kafka</name>
 	<description>An example showing how to create a JMS bridge SonicMQ - Kafka using camel and spring boot</description>
 	<version>3.0.0-M1</version>
