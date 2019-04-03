@@ -25,57 +25,56 @@
 	<artifactId>sonic-kafka-bridge</artifactId>
 	<groupId>com.test</groupId>
 	<name>Camel :: Example :: Spring Boot :: SonicMQ to Kafka</name>
-	<description>An example showing how to create a JMS bridge SonicMQ - Kafka using camel and spring boot</description>
-	<version>3.0.0-M1</version>
+	<description>
+	  An example showing how to create a JMS bridge SonicMQ - Kafka 
+	  using camel and spring boot
+	</description>
+	<version>1.0-SNAPSHOT</version>
+	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
 		<category>Messaging</category>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
-		<wam.sonic.version>8.0.1</wam.sonic.version>
-		<spring-boot-version>2.1.3.RELEASE</spring-boot-version>
-	</properties>
-	
-	
-	
-	
-	<dependencyManagement>
+		<sonic.version>8.0.1</sonic.version>
+		<spring-boot.version>2.1.3.RELEASE</spring-boot.version>
+		<camel.version>3.0.0-M1</camel.version>
+		<dependency-check.skip>true</dependency-check.skip>
+		<!--  Req for open JDK  -->
+		<jaxb-api.version>2.3.1</jaxb-api.version>
 
+	</properties>
+
+	<dependencyManagement>
 		<dependencies>
-			<!-- Spring Boot BOM 
+			<!-- Spring Boot BOM -->
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${spring.boot-version}</version>
+				<version>${spring-boot.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			-->
 
 			<!-- Camel BOM -->
 			<dependency>
 				<groupId>org.apache.camel</groupId>
 				<artifactId>camel-spring-boot-dependencies</artifactId>
-				<version>${project.version}</version>
+				<version>${camel.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 		</dependencies>
-
 	</dependencyManagement>
 
 	<dependencies>
-
-		<!-- activemq -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-activemq</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.activemq</groupId>
-					<artifactId>activemq-broker</artifactId>
-				</exclusion>
-			</exclusions>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator </artifactId>
 		</dependency>
 
 		<!-- Camel -->
@@ -85,66 +84,86 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-activemq</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.activemq</groupId>
-					<artifactId>activemq-broker</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.geronimo.specs</groupId>
-					<artifactId>geronimo-jta_1.0.1B_spec</artifactId>
-
-				</exclusion>
-			</exclusions>
+			<artifactId>camel-jms-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-metrics-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-mail-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.codahale.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+			<version>3.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.codahale.metrics</groupId>
+			<artifactId>metrics-json</artifactId>
+			<version>3.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-kafka</artifactId>
 		</dependency>
-		
-		<!-- Sonic MQ  -->
-		
-		 <!-- JavaConfig need this library -->
-        <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib</artifactId>
-            <version>2.2.2</version>
+		 <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-stream</artifactId>
         </dependency>
-  	
-        <dependency>
-            <groupId>com.progress.sonic</groupId>
-            <artifactId>sonic_Client</artifactId>
-            <version>${wam.sonic.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.progress.sonic</groupId>
-            <artifactId>sonic_Crypto</artifactId>
-            <version>${wam.sonic.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.progress.sonic</groupId>
-            <artifactId>mfcontext</artifactId>
-            <version>${wam.sonic.version}</version>
-        </dependency>
-       <dependency>
-            <groupId>com.progress.sonic</groupId>
-            <artifactId>sonic_XA</artifactId>
-            <version>${wam.sonic.version}</version>
-       </dependency>
-
-
-		<!-- test -->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
+			<groupId>org.jolokia</groupId>
+			<artifactId>jolokia-core</artifactId>
+		</dependency>
+
+		<!-- Sonic MQ -->
+
+		<!-- JavaConfig need this library -->
+		<dependency>
+			<groupId>cglib</groupId>
+			<artifactId>cglib</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.progress.sonic</groupId>
+			<artifactId>sonic_Client</artifactId>
+			<version>${wam.sonic.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-test-spring</artifactId>
-			<scope>test</scope>
+			<groupId>com.progress.sonic</groupId>
+			<artifactId>sonic_Crypto</artifactId>
+			<version>${wam.sonic.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.progress.sonic</groupId>
+			<artifactId>mfcontext</artifactId>
+			<version>${wam.sonic.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.progress.sonic</groupId>
+			<artifactId>sonic_XA</artifactId>
+			<version>${wam.sonic.version}</version>
+		</dependency>
+		
+		<!--  For Open JDK -->  
+		<dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>${jaxb-api.version}</version>
+        </dependency>
+		<dependency>
+             <groupId>com.sun.xml.bind</groupId>
+             <artifactId>jaxb-impl</artifactId>
+             <version>${jaxb-api.version}</version>
+        </dependency>
+        <dependency>
+             <groupId>com.sun.istack</groupId>
+             <artifactId>istack-commons-runtime</artifactId>
+             <version>3.0.8</version>
+       </dependency>		
+	
 	</dependencies>
 
 	<build>
@@ -152,7 +171,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-<!-- 				<version>${spring-boot-version}</version> -->
 				<executions>
 					<execution>
 						<goals>
@@ -163,25 +181,19 @@
 			</plugin>
 		</plugins>
 	</build>
-    
-	<profiles>
-		<profile>
-			<id>jdk9+-build</id>
-			<activation>
-				<jdk>[9,)</jdk>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<configuration>
-							<argLine>--add-modules java.xml.bind --add-opens
-								java.base/java.lang=ALL-UNNAMED</argLine>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
-	
+	<developers>
+		<developer>
+			<id>tsaha</id>
+			<name>Tanmay Saha</name>
+			<email>tanmay.saha@westernasset.com</email>
+			<timezone>-8</timezone>
+		</developer>
+	</developers>
+	<distributionManagement>
+		<site>
+			<id>WAM-site</id>
+			<name>WAM Maven Site</name>
+			<url>${wam.mavenSite.url}/${project.artifactId}/${project.version}</url>
+		</site>
+	</distributionManagement>
 </project>
