@@ -1,0 +1,26 @@
+package com.test;
+
+import org.apache.camel.builder.RouteBuilder;
+import org.springframework.stereotype.Component;
+
+@Component
+public class NotificationRoute extends RouteBuilder {
+   
+    @Override
+    public void configure () throws Exception {
+        from("file://{{camel.route.offlineStorage}}?noop=true")
+                .routeId("Notification_Kafka_Brokers_Offline").doTry()
+                .setHeader("subject", simple("Broker off line message"))
+                .setHeader("to", simple("{{notification.it-support}}"))
+                .setHeader("from", simple("{{notification.from}}"))
+                .to("smtp://{{notification.smtp.host}}");
+
+        from("file://{{camel.route.largeXMLStorage}}")
+                .routeId("Notification_Large_TradeXML").doTry()
+                .setHeader("subject", simple("Received Trade XML larger than 2 MB"))
+                .setHeader("to", simple("{{notification.it-imrs-support}}"))
+                .setHeader("from", simple("{{notification.from}}"))
+                .to("smtp://{{notification.smtp.host}}");
+    }
+
+}
