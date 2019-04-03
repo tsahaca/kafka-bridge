@@ -1,101 +1,94 @@
-
 package com.test;
 
-import org.apache.camel.builder.RouteBuilder;
-import org.springframework.stereotype.Component;
-import org.apache.camel.CamelContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.apache.camel.component.jms.JmsComponent;
-import org.apache.camel.Processor;
 import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.apache.camel.TypeConversionException;
+import org.apache.camel.builder.RouteBuilder;
 import org.apache.kafka.common.errors.RecordTooLargeException;
 import org.apache.kafka.common.errors.TimeoutException;
-import org.apache.camel.TypeConversionException;
-import org.xml.sax.SAXParseException;
+import org.springframework.stereotype.Component;
 
 
 @Component
 public class KafkaBridgeRoute extends RouteBuilder {
-	
-	@Autowired
-	private JmsComponent sonicMQComponent;
-	   
+    
+    
 
     @Override
-    public void configure() throws Exception {
-    	
-    	final CamelContext context = this.getContext();
-    	context.addComponent("sonicmq", sonicMQComponent);
-    	
-    	onException(RecordTooLargeException.class).process(new Processor() {
-            public void process(Exchange exchange) throws Exception {
-            	Exception exception = (Exception) exchange.getProperty(Exchange.EXCEPTION_CAUGHT);
-            	//log.error("Error Message", exception);
-            	handleErrorMessage("Error Message ="+ exception.getMessage());
-                log.info("handling ex " +  exchange.getIn().getBody(String.class));
-            }
-        }).log("Received body").handled(true);
-    	
-    	onException(TimeoutException.class).process(new Processor() {
-            public void process(Exchange exchange) throws Exception {
-            	Exception exception = (Exception) exchange.getProperty(Exchange.EXCEPTION_CAUGHT);
-            	//log.error("Error Message2", exception);
-            	handleErrorMessage("Error Message2 ="+ exception.getMessage());
-                log.info("handling ex2 " +  exchange.getIn().getBody(String.class));
-            }
-        }).log("Received body2").handled(true);
+    public void configure () throws Exception {
 
-    	onException(SAXParseException.class).process(new Processor() {
-            public void process(Exchange exchange) throws Exception {
-            	Exception exception = (Exception) exchange.getProperty(Exchange.EXCEPTION_CAUGHT);
-            	//log.error("Error Message3", exception);
-            	handleErrorMessage("Error Message3 ="+ exception.getMessage());
-                log.info("handling ex3" +  exchange.getIn().getBody(String.class));
-            }
-        }).log("Received body3").handled(true);
-    	
-    	onException(SAXParseException.class).process(new Processor() {
-            public void process(Exchange exchange) throws Exception {
-            	Exception exception = (Exception) exchange.getProperty(Exchange.EXCEPTION_CAUGHT);
-            	//log.error("Error Message3", exception);
-            	handleErrorMessage("Error Message4 ="+ exception.getMessage());
-                log.info("handling ex4" +  exchange.getIn().getBody(String.class));
-            }
-        }).log("Received body4").handled(true);
+        /**
+         * When Trade XML is larger than 2 MB
+         */
+        onException(RecordTooLargeException.class)
+                .routeId("Large_TradeXml_Handler")
+                .to("file://{{camel.route.largeXMLStorage}}?fileName=${threadName}-${date:now:MM-dd-yyyy-HH-mm-ss-SSS}.xml")
+                .log("Received Large TradeXML").handled(true);
 
-    	onException(TypeConversionException.class).process(new Processor() {
-            public void process(Exchange exchange) throws Exception {
-            	Exception exception = (Exception) exchange.getProperty(Exchange.EXCEPTION_CAUGHT);
-            	//log.error("Error Message3", exception);
-            	handleErrorMessage("Error Message5 ="+ exception.getMessage());
-                log.info("handling ex5" +  exchange.getIn().getBody(String.class));
-            }
-        }).log("Received body5").handled(true);
+        /**
+         * When Kafka Brokers are offline
+         */
+        onException(TimeoutException.class)
+                .routeId("Kafka_Brokers_Offline_Handler")
+                .to("file://{{camel.route.offlineStorage}}?fileName=${threadName}-${date:now:MM-dd-yyyy-HH-mm-ss-SSS}.xml")
+                .log("Received Trade when broker offline").handled(true);
+        
+        /**
+         * When XML is not valid
+         
+        onException(SAXParseException.class).routeId("Invalid_XML_Handler")
+                .to("file://{{camel.route.invalidXMLStorage}}")
+                .log("Received Invalid Trade XML").handled(true);
+         */
+        
+        onException(TypeConversionException.class)
+                .routeId("TypeConversion_Exception_Handler")
+                .to("file://{{camel.route.conversionFailedStorage}}?fileName=${threadName}-${date:now:MM-dd-yyyy-HH-mm-ss-SSS}.xml")
+                .log("Received and failed to convert type").handled(true);
 
-    	onException(Exception.class).process(new Processor() {
-            public void process(Exchange exchange) throws Exception {
-            	Exception exception = (Exception) exchange.getProperty(Exchange.EXCEPTION_CAUGHT);
-            	log.error("Error Message6", exception);
-            	//handleErrorMessage("Error Message6="+ exception.getMessage());
-            }
-        }).log("Received body5").handled(true);
-    	
+        onException(Exception.class)
+             .routeId("All_Other_Exception_Handler")
+             .process(new Processor() { 
+                 public void process(Exchange exchange) throws Exception { 
+                     Exception exception = (Exception) exchange.getProperty(Exchange.EXCEPTION_CAUGHT);
+                     log.error("Received body with other errors", exception); 
+                     } 
+                 })
+                .to("file://{{camel.route.allOtherFailureStorage}}?fileName=${threadName}-${date:now:MM-dd-yyyy-HH-mm-ss-SSS}.xml")
+                .log("Received body with other errors").handled(true);
 
-    	
-    	from("sonicmq:topic:SampleT1?clientId={{SonicMQ.clientId}}&durableSubscriptionName={{SonicMQ.subscription}}")
-    	.split(xpath("/tradeGroup/trade"))
-        .to("kafka:test?brokers={{spring.kafka.bootstrap-servers}}&requestTimeoutMs={{spring.kafka.producer-requestTimeoutMs}}");
-    	//.to("kafka:test?brokers={{spring.kafka.bootstrap-servers}}");
-    	
-    	/**
-    	from("timer:bar")
-        .setBody(constant("Hello from Sonic MQ to Kafka Brokers Durable Subscriber"))
-        .to("sonicmq:topic:SampleT1");	
-    	*/
-    }
-    
-    private void handleErrorMessage(String message) {
-    	log.info(message);
+        /**
+         * onException(Exception.class).process(new Processor() { public void
+         * process(Exchange exchange) throws Exception { Exception exception =
+         * (Exception) exchange.getProperty(Exchange.EXCEPTION_CAUGHT);
+         * log.error("Error Message6", exception); } }).log("Received
+         * body5").handled(true);
+         **/
+
+        /**
+        from("sonicmq:topic:{{SonicMQ.destination}}?clientId={{SonicMQ.clientId}}&durableSubscriptionName={{SonicMQ.subscription}}")
+                .routeId(
+                        "Sonic.{{SonicMQ.destination}}-Kafka.{{spring.kafka.targetTradeXMLTopic}}")
+                .split(xpath("/tradeGroup/trade"))
+                .to("kafka:{{spring.kafka.targetTradeXMLTopic}}?brokers={{spring.kafka.bootstrap-servers}}&requestTimeoutMs={{spring.kafka.producer-requestTimeoutMs}}");
+        */        
+
+        from("sonicmq:topic:{{SonicMQ.destination}}?clientId={{SonicMQ.clientId}}&durableSubscriptionName={{SonicMQ.subscription}}")
+                .routeId(
+                        "Sonic.{{SonicMQ.destination}}-Kafka.{{spring.kafka.targetTradeXMLTopic}}")
+                .split()
+                .tokenizeXML("trade")
+                .streaming()
+                .parallelProcessing()
+                .removeHeaders("*")
+                .to("kafka:{{spring.kafka.targetTradeXMLTopic}}?brokers={{spring.kafka.bootstrap-servers}}&requestTimeoutMs={{spring.kafka.producer-requestTimeoutMs}}&clientId={{SonicMQ.clientId}}");
+      
+        from("file://{{camel.route.offlineStorage}}?delete=true")
+                .routeId(
+                        "LocalStore-Kafka.{{spring.kafka.targetTradeXMLTopic}}")
+                .autoStartup(false)
+                .removeHeaders("*")
+                .to("kafka:{{spring.kafka.targetTradeXMLTopic}}?brokers={{spring.kafka.bootstrap-servers}}&requestTimeoutMs={{spring.kafka.producer-requestTimeoutMs}}&clientId=OffLineStoreKafkaBridge");
     }
 
 }
