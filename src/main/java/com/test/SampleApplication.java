@@ -15,7 +15,7 @@ import com.codahale.metrics.MetricRegistry;
 public class SampleApplication {
 
     public static void main (final String[] args) {
-        SpringApplication.run(Application.class, args);
+        SpringApplication.run(SampleApplication.class, args);
     }
 
     @Bean

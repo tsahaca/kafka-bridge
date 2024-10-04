@@ -30,7 +30,7 @@
 	  using camel and spring boot
 	</description>
 	<version>1.0-SNAPSHOT</version>
-	<modelVersion>4.0.0</modelVersion>
+
 
 	<properties>
 		<category>Messaging</category>
@@ -185,15 +185,9 @@
 		<developer>
 			<id>tsaha</id>
 			<name>Tanmay Saha</name>
-			<email>tanmay.saha@westernasset.com</email>
+			<email>tanmay.x.saha@gmail.com</email>
 			<timezone>-8</timezone>
 		</developer>
 	</developers>
-	<distributionManagement>
-		<site>
-			<id>WAM-site</id>
-			<name>WAM Maven Site</name>
-			<url>${wam.mavenSite.url}/${project.artifactId}/${project.version}</url>
-		</site>
-	</distributionManagement>
+
 </project>
